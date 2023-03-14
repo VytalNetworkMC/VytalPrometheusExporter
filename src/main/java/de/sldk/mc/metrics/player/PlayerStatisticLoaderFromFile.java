@@ -34,11 +34,11 @@ public class PlayerStatisticLoaderFromFile implements PlayerStatisticLoader {
     private final Plugin plugin;
     private final Logger logger;
     private final Supplier<Map<UUID, Map<Enum<?>, Integer>>> statsFileLoader =
-            Suppliers.memoize(this::readPlayerStatsFiles);
+            (Supplier<Map<UUID, Map<Enum<?>, Integer>>>) Suppliers.memoize(this::readPlayerStatsFiles);
 
     private static final Map<String, Enum<?>> mapStatNameToStat = Arrays
             .stream(PlayerStatisticLoaderFromBukkit.STATISTICS)
-            .collect(Collectors.toMap(e -> e.getKey().toString(), e -> e));
+            .collect(Collectors.toMap(e -> e.getType().name(), e -> e));
 
     public PlayerStatisticLoaderFromFile(Plugin plugin) {
         this.plugin = plugin;
@@ -112,7 +112,7 @@ public class PlayerStatisticLoaderFromFile implements PlayerStatisticLoader {
      */
     private Map<Enum<?>, Integer> getPlayersStats(Path path) throws IOException {
         DocumentContext ctx = JsonPath.parse(path.toFile());
-        Map<String, Object> fileStats = ctx.read(JsonPath.compile("$.stats.minecraft:custom"));
+        Map<String, Object> fileStats = ctx.read(JsonPath.compile(new String("$.stats.minecraft:custom")));
         return fileStats.keySet().stream().filter(mapStatNameToStat::containsKey)
                 .filter(e -> fileStats.get(e) instanceof Integer)
                 .collect(Collectors.toMap(mapStatNameToStat::get, e -> (Integer) fileStats.get(e)));
